@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)http://www.huahuaxie.com/fat-aar-implementation-analysis/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link rel="dns-prefetch" href="http://apps.bdimg.com/">
+<meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="花花鞋">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>fat-aar 实现分析-花花鞋</title>
+<link rel="dns-prefetch" href="http://s0.wp.com/">
+<link rel="dns-prefetch" href="http://s.gravatar.com/">
+<link rel="dns-prefetch" href="http://s.w.org/">
+<link rel="stylesheet" id="crayon-css" href="./fat-aar 实现分析-花花鞋_files/crayon.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="crayon-theme-github-css" href="./fat-aar 实现分析-花花鞋_files/github.css" type="text/css" media="all">
+<link rel="stylesheet" id="crayon-font-monaco-css" href="./fat-aar 实现分析-花花鞋_files/monaco.css" type="text/css" media="all">
+<link rel="stylesheet" id="dpa-default-achievements-css" href="./fat-aar 实现分析-花花鞋_files/achievements.css" type="text/css" media="screen">
+<link rel="stylesheet" id="bbp-default-css" href="./fat-aar 实现分析-花花鞋_files/bbpress.css" type="text/css" media="screen">
+<link rel="stylesheet" id="smartideo_css-css" href="./fat-aar 实现分析-花花鞋_files/smartideo.css" type="text/css" media="screen">
+<link rel="stylesheet" id="wpfla-style-handle-css" href="./fat-aar 实现分析-花花鞋_files/style.css" type="text/css" media="all">
+<link rel="stylesheet" id="_bootstrap-css" href="./fat-aar 实现分析-花花鞋_files/bootstrap.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="_fontawesome-css" href="./fat-aar 实现分析-花花鞋_files/font-awesome.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="_main-css" href="./fat-aar 实现分析-花花鞋_files/main.css" type="text/css" media="all">
+<link rel="stylesheet" id="tablepress-default-css" href="./fat-aar 实现分析-花花鞋_files/default.min.css" type="text/css" media="all">
+<link rel="stylesheet" id="jetpack_css-css" href="./fat-aar 实现分析-花花鞋_files/jetpack.css" type="text/css" media="all">
+<script src="./fat-aar 实现分析-花花鞋_files/hm.js.下载"></script><script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/jquery.min.js.下载"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var related_posts_js_options = {"post_heading":"h4"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/related-posts.js.下载"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var CrayonSyntaxSettings = {"version":"_2.7.2_beta","is_admin":"0","ajaxurl":"http:\/\/www.huahuaxie.com\/wp-admin\/admin-ajax.php","prefix":"crayon-","setting":"crayon-setting","selected":"crayon-setting-selected","changed":"crayon-setting-changed","special":"crayon-setting-special","orig_value":"data-orig-value","debug":""};
+var CrayonSyntaxStrings = {"copy":"Press %s to Copy, %s to Paste","minimize":"Click To Expand Code"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/crayon.min.js.下载"></script>
+<link rel="https://api.w.org/" href="http://www.huahuaxie.com/wp-json/">
+<link rel="prev" title="GitHub 常用的 Chrome 插件" href="http://www.huahuaxie.com/github-%e5%b8%b8%e7%94%a8%e7%9a%84-chrome-%e6%8f%92%e4%bb%b6/">
+<link rel="next" title="微学习-android里面判断App处于前台还是后台" href="http://www.huahuaxie.com/westudy-android-foreground-judge/">
+<link rel="canonical" href="http://www.huahuaxie.com/fat-aar-implementation-analysis/">
+<link rel="alternate" type="application/json+oembed" href="http://www.huahuaxie.com/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fwww.huahuaxie.com%2Ffat-aar-implementation-analysis%2F">
+<link rel="alternate" type="text/xml+oembed" href="http://www.huahuaxie.com/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fwww.huahuaxie.com%2Ffat-aar-implementation-analysis%2F&amp;format=xml">
+
+<link rel="dns-prefetch" href="http://v0.wordpress.com/">
+<link rel="dns-prefetch" href="http://widgets.wp.com/">
+<link rel="dns-prefetch" href="http://s0.wp.com/">
+<link rel="dns-prefetch" href="http://0.gravatar.com/">
+<link rel="dns-prefetch" href="http://1.gravatar.com/">
+<link rel="dns-prefetch" href="http://2.gravatar.com/">
+<link rel="dns-prefetch" href="http://i0.wp.com/">
+<link rel="dns-prefetch" href="http://i1.wp.com/">
+<link rel="dns-prefetch" href="http://i2.wp.com/">
+<style type="text/css">img#wpstats{display:none}</style><meta name="keywords" content="fat-aar, gradle, gradle, 原创专区">
+<meta name="description" content="1、fat-aar介绍 简单的说他可以把一个android library工程所依赖的module(包含远程依赖)的内容（包括：jar, assets, res，jni, manifest等）在打包时都包含进来，最终生成一个完整的aar，可以单独提供出去使用。  fat-aar非常方便，尤其当你所依赖的库不公开，或者对方无法访问你的传递依赖库时，又或者对方不会使用gradle依赖，只会拷贝资源到e">
+<style>a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #FF5E52;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #FF5E52;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #FF5E52;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #FF5E52;}.excerpt .cat i{border-left-color:#FF5E52;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #FF5E52;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#FF5E52;}}.post-actions .action.action-like{background-color: #FF5E52;}.catleader h1{border-left-color: #FF5E52;}.loop-product-filters ul .current-cat>a{color: #FF5E52;}@font-face {
+  font-family: 'iconfont';  /* project id 857880 */
+  src: url('//at.alicdn.com/t/font_857880_iibkcs12rq.eot');
+  src: url('//at.alicdn.com/t/font_857880_iibkcs12rq.eot?#iefix') format('embedded-opentype'),
+  url('//at.alicdn.com/t/font_857880_iibkcs12rq.woff') format('woff'),
+  url('//at.alicdn.com/t/font_857880_iibkcs12rq.ttf') format('truetype'),
+  url('//at.alicdn.com/t/font_857880_iibkcs12rq.svg#iconfont') format('svg');
+}
+
+/* 这段必须有 */
+.iconfont{
+  font-family:"iconfont" !important;
+  font-style:normal;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-stroke-width: 0.2px;
+  -moz-osx-font-smoothing: grayscale;
+}</style><meta name="description" content="1、fat-aar介绍 简单的说他可以把一个android library工程所依赖的module(包含远程依…">
+
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="fat-aar 实现分析">
+<meta property="og:url" content="http://www.huahuaxie.com/fat-aar-implementation-analysis/">
+<meta property="og:description" content="1、fat-aar介绍 简单的说他可以把一个android library工程所依赖的module(包含远程依…">
+<meta property="article:published_time" content="2018-04-01T04:03:54+00:00">
+<meta property="article:modified_time" content="2019-01-09T01:58:19+00:00">
+<meta property="og:site_name" content="花花鞋">
+<meta property="og:image" content="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/gradle_icon2.jpg?fit=480%2C260">
+<meta property="og:image:width" content="480">
+<meta property="og:image:height" content="260">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:text:title" content="fat-aar 实现分析">
+<meta name="twitter:image" content="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/gradle_icon2.jpg?fit=480%2C260&amp;w=640">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+    {
+        "@context": "https://ziyuan.baidu.com/contexts/cambrian.jsonld",
+        "@id": "http://www.huahuaxie.com/fat-aar-implementation-analysis/",
+        "appid": "1611454482719726",
+        "title": "fat-aar 实现分析",
+        "images": [],
+        "description": "1、fat-aar介绍",
+        "pubDate": "2018-04-01T12:03:54"
+    }
+</script>
+<link rel="icon" href="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/01/cropped-%E8%8A%B1%E6%9C%B5.png?fit=32%2C32" sizes="32x32">
+<link rel="icon" href="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/01/cropped-%E8%8A%B1%E6%9C%B5.png?fit=192%2C192" sizes="192x192">
+<link rel="apple-touch-icon-precomposed" href="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/01/cropped-%E8%8A%B1%E6%9C%B5.png?fit=180%2C180">
+<meta name="msapplication-TileImage" content="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/01/cropped-花朵.png?fit=270%2C270">
+<link rel="shortcut icon" href="http://www.huahuaxie.com/favicon.ico">
+<!--[if lt IE 9]><script src="http://www.huahuaxie.com/wp-content/themes/3c265072e5a9105/js/libs/html5.min.js"></script><![endif]-->
+<script src="./fat-aar 实现分析-花花鞋_files/share.js.下载"></script><style type="text/css"></style><link rel="stylesheet" type="text/css" id="gravatar-card-css" href="./fat-aar 实现分析-花花鞋_files/hovercard.min.css"><link rel="stylesheet" type="text/css" id="gravatar-card-services-css" href="./fat-aar 实现分析-花花鞋_files/services.min.css"><script async="" data-tbquirecontext="_" data-tbquiremodule="main" src="./fat-aar 实现分析-花花鞋_files/main.js.下载"></script><script async="" data-tbquirecontext="_" data-tbquiremodule="lazyload" src="./fat-aar 实现分析-花花鞋_files/lazyload.min.js.下载"></script><link href="./fat-aar 实现分析-花花鞋_files/share.css" rel="styleSheet" type="text/css"></head>
+<body class="post-template-default single single-post postid-1404 single-format-standard nav_fixed m-excerpt-cat m-excerpt-time flinks-m comment-open site-layout-2 text-justify-on">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="http://www.huahuaxie.com/" title="专注android技术，聚焦行业精粹，我们一直在努力
+"><img src="./fat-aar 实现分析-花花鞋_files/8fe9e5f1cb3e0f7.png" alt="专注android技术，聚焦行业精粹，我们一直在努力
+" scale="0">花花鞋</a></div>		<div class="brand">欢迎光临
+<br>专注android技术，聚焦行业精粹，我们一直在努力</div>		<ul class="site-nav site-navbar">
+			<li id="menu-item-2153" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-2153"><a href="http://www.huahuaxie.com/"><i class="iconfont"></i>首页</a></li>
+<li id="menu-item-1078" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1078"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/"><i class="iconfont"></i>编程开发</a>
+<ul class="sub-menu">
+	<li id="menu-item-93" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-93"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/android/">android</a></li>
+	<li id="menu-item-84" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-84"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/git-coding/">git</a></li>
+	<li id="menu-item-79" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-79"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/gradle/">gradle</a></li>
+	<li id="menu-item-546" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-546"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/%e7%bc%96%e8%af%91/">编译</a></li>
+</ul>
+</li>
+<li id="menu-item-2245" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-2245"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/%e6%8a%80%e6%9c%af%e4%b8%93%e6%a0%8f/%e6%9e%b6%e6%9e%84/"><i class="iconfont"></i>架构</a></li>
+<li id="menu-item-2243" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-2243"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/%e6%8a%80%e6%9c%af%e4%b8%93%e6%a0%8f/%e5%ae%89%e5%85%a8%e4%b8%8e%e9%80%86%e5%90%91/"><i class="iconfont"></i>安全与逆向</a></li>
+<li id="menu-item-2244" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-2244"><a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/%e6%8a%80%e6%9c%af%e4%b8%93%e6%a0%8f/%e6%8f%92%e4%bb%b6%e5%8c%96%e5%bc%80%e5%8f%91/"><i class="iconfont"></i>插件化</a></li>
+<li id="menu-item-637" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-637"><a href="http://www.huahuaxie.com/category/internet/"><i class="iconfont"></i>前沿速递</a></li>
+							<li class="navto-search"><a href="javascript:;" class="search-show active"><i class="fa fa-search"></i></a></li>
+					</ul>
+				<div class="topbar">
+			<ul class="site-nav topmenu">
+				<li id="menu-item-2255" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-2255"><a href="http://www.huahuaxie.com/category/%e4%b8%ad%e5%9b%bd%e4%bc%a0%e7%bb%9f%e6%96%87%e5%8c%96/">传统文化</a></li>
+<li id="menu-item-2251" class="menu-item menu-item-type-post_type menu-item-object-forum menu-item-has-children menu-item-2251"><a href="http://www.huahuaxie.com/forums/forum/hall/">花花资源库</a>
+<ul class="sub-menu">
+	<li id="menu-item-2252" class="menu-item menu-item-type-post_type menu-item-object-forum menu-item-2252"><a href="http://www.huahuaxie.com/forums/forum/hall/%e8%8a%b1%e8%8a%b1%e7%94%b5%e5%ad%90%e4%b9%a6%e5%b1%8b/">花花电子书屋</a></li>
+	<li id="menu-item-2253" class="menu-item menu-item-type-post_type menu-item-object-forum menu-item-2253"><a href="http://www.huahuaxie.com/forums/forum/hall/tools/">花花工具箱</a></li>
+	<li id="menu-item-2254" class="menu-item menu-item-type-post_type menu-item-object-forum menu-item-2254"><a href="http://www.huahuaxie.com/forums/forum/hall/huahua-film/">花花影院</a></li>
+</ul>
+</li>
+<li id="menu-item-2120" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2120"><a href="http://www.huahuaxie.com/%e9%a1%b5%e9%9d%a2%e5%ad%98%e6%a1%a3/">页面存档</a></li>
+								<li class="menusns">
+					<a href="javascript:;">关注我们 <i class="fa fa-angle-down"></i></a>
+					<ul class="sub-menu">
+						<li><a class="sns-wechat" href="javascript:;" title="花花鞋微信订阅号" data-src="http://www.huahuaxie.com/wp-content/uploads/2018/09/qrcode_for_gh_f720e8bb3091_258.jpg">花花鞋微信订阅号</a></li>											</ul>
+				</li>
+							</ul>
+											<a href="javascript:;" class="signin-loader">Hi, 请登录</a>
+				&nbsp; &nbsp; <a href="javascript:;" class="signup-loader">我要注册</a>
+				&nbsp; &nbsp; <a href="http://www.huahuaxie.com/%e4%bf%ae%e6%94%b9%e5%af%86%e7%a0%81/">找回密码</a>
+					</div>
+						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="http://www.huahuaxie.com/"><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="http://www.huahuaxie.com/">花花鞋</a> <small>&gt;</small> <a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/">原创专区</a> <small>&gt;</small> <a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/">原创编程</a> <small>&gt;</small> <a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/gradle/">gradle</a> <small>&gt;</small> 正文</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="http://www.huahuaxie.com/fat-aar-implementation-analysis/">fat-aar 实现分析</a></h1>
+			<div class="article-meta">
+				<span class="item">2018-04-01</span>
+												<span class="item">分类：<a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/coding/gradle/" rel="category tag">gradle</a> / <a href="http://www.huahuaxie.com/category/%e5%8e%9f%e5%88%9b%e4%b8%93%e5%8c%ba/" rel="category tag">原创专区</a></span>
+				<span class="item post-views">阅读(1346)</span>				<span class="item">评论(0)</span>
+				<span class="item"></span>
+			</div>
+		</header>
+				<article class="article-content">
+						<h1><strong>1、fat-aar介绍</strong></h1>
+<p>简单的说他可以把一个android library工程所依赖的module(包含远程依赖)的内容（包括：jar, assets, res，jni, manifest等）在打包时都包含进来，最终生成一个完整的aar，可以单独提供出去使用。</p>
+<p>fat-aar非常方便，尤其当你所依赖的库不公开，或者对方无法访问你的<strong>传递依赖</strong>库时，又或者对方不会使用gradle依赖，只会拷贝资源到eclipse工程中时非常有用。</p>
+<p><strong>注意：</strong>fat-aar使用方面会有一些限制，fat-aar只会处理<strong>embedded</strong>关键字指向的这层一级依赖，而它的再下一层的依赖则不会处理。对于这个问题fat-aar也提供了一个<a href="https://github.com/adwiv/android-fat-aar/blob/master/publish.gradle">publish.gradle</a>来处理，也就是说最终你发布的aar虽然是单独的一个，但是随之也会有一个pom文件告诉接入方还有一些子依赖。所以接入方还得用gradle方式去接入，以保证这些子依赖可以完整的下载下来。</p>
+<p>具体使用很简单，参考github的原仓库介绍：<a href="https://github.com/adwiv/android-fat-aar">链接</a></p>
+<p>步骤如下：</p>
+<p><span style="color: #0000ff; font-size: 12pt;"><strong>第一步：</strong>导入fat-aar.gradle</span></p>
+<p><strong>有两种方式：</strong></p>
+<p><strong>1.可以拷贝<a href="https://github.com/adwiv/android-fat-aar/blob/master/fat-aar.gradle"><span style="color: #0000ff;">fat-aar.gradle</span></a>到你的library工程目录，在你的build.gradle里面导入即可：</strong></p>
+<p>fat-aar的下载地址：<a href="https://github.com/adwiv/android-fat-aar/blob/master/fat-aar.gradle">链接</a>&nbsp;，或者到上面的github原项目直接下载</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f44b066009668" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">apply from: 'fat-aar.gradle'</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f44b066009668-1">1</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f44b066009668-1"><span class="crayon-e">apply </span><span class="crayon-v">from</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'fat-aar.gradle'</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0004 seconds] -->
+<p><strong>2. 也可以通过url来导入fat-aar</strong></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f455988581019" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">apply from: 'https://raw.githubusercontent.com/adwiv/android-fat-aar/master/fat-aar.gradle'</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f455988581019-1">1</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f455988581019-1"><span class="crayon-e">apply </span><span class="crayon-v">from</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'https://raw.githubusercontent.com/adwiv/android-fat-aar/master/fat-aar.gradle'</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0002 seconds] -->
+<p><span style="color: #0000ff;"><strong>第二步: 定义需要合并的 embedded 依赖</strong></span></p>
+<p>你需要修改build.gradle里面的dependencies块，把你想要合并进来的aar依赖前面的<strong>compile</strong>字段改为<strong>embedded。</strong>修改的结果例如下面这样：</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f458285047681" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">dependencies {
+  compile fileTree(dir: 'libs', include: ['*.jar'])
+
+  // Order of dependencies decide which will have precedence in case of duplicates 
+  // during manifest / resource merger 
+  embedded project(':librarytwo')
+  embedded project(':libraryone')
+  embedded project('com.example.internal:lib-three:1.2.3')
+  
+  compile 'com.example:some-other-lib:1.0.3'
+  compile 'com.android.support:appcompat-v7:22.2.0'
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f458285047681-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f458285047681-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f458285047681-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f458285047681-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f458285047681-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f458285047681-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f458285047681-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f458285047681-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f458285047681-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f458285047681-10">10</div><div class="crayon-num" data-line="crayon-5c3587946f458285047681-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f458285047681-12">12</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f458285047681-1"><span class="crayon-e">dependencies</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f458285047681-2"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-e">compile </span><span class="crayon-e">fileTree</span><span class="crayon-sy">(</span><span class="crayon-v">dir</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'libs'</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">include</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-sy">[</span><span class="crayon-s">'*.jar'</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f458285047681-3">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f458285047681-4"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-c">// Order of dependencies decide which will have precedence in case of duplicates </span></div><div class="crayon-line" id="crayon-5c3587946f458285047681-5"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-c">// during manifest / resource merger </span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f458285047681-6"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-e">embedded </span><span class="crayon-e">project</span><span class="crayon-sy">(</span><span class="crayon-s">':librarytwo'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f458285047681-7"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-e">embedded </span><span class="crayon-e">project</span><span class="crayon-sy">(</span><span class="crayon-s">':libraryone'</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f458285047681-8"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-e">embedded </span><span class="crayon-e">project</span><span class="crayon-sy">(</span><span class="crayon-s">'com.example.internal:lib-three:1.2.3'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f458285047681-9"><span class="crayon-h">&nbsp;&nbsp;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f458285047681-10"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-i">compile</span><span class="crayon-h"> </span><span class="crayon-s">'com.example:some-other-lib:1.0.3'</span></div><div class="crayon-line" id="crayon-5c3587946f458285047681-11"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-i">compile</span><span class="crayon-h"> </span><span class="crayon-s">'com.android.support:appcompat-v7:22.2.0'</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f458285047681-12"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0008 seconds] -->
+<p>依赖的前面有embedded 将会被合并进来，其它的会保持gradle原来的依赖方式。</p>
+<p><span style="color: #0000ff;"><strong>第三步: 同一个工程依赖这个embedded工程需要移除传递依赖</strong></span></p>
+<p>经过上面两步你已经将子工程<strong>embedded</strong>到了你的主<strong>library</strong>工程了。但你会发现的你的application类型的工程在依赖（compile）你的这个工程时会提示类重复错误，原因是在类型为application的工程compile你的library时也会把该library的传递依赖也包含进来，此时你的library如果使用了fat-aar，那么实际你的library也包含了这些传递依赖，所以会出现类重复。你需要确保其它application类型的工程在依赖你已经使用<strong>embedded</strong>的library工程（简单称为：<strong>fat-library</strong>）时不开启<strong>传递依赖</strong>（transitive）。</p>
+<p>如果你再同一个工程里面使用了这个<strong>fat-library</strong>，你需要简单的定义你的<strong>fat-library</strong>工程的依赖为non transitive：</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f45b420918904" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">compile (project(':applibrary')) {  // Notice the parentheses around project
+    transitive false
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f45b420918904-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f45b420918904-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f45b420918904-3">3</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f45b420918904-1"><span class="crayon-e">compile</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-e">project</span><span class="crayon-sy">(</span><span class="crayon-s">':applibrary'</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-c">// Notice the parentheses around project</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f45b420918904-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">transitive </span><span class="crayon-t">false</span></div><div class="crayon-line" id="crayon-5c3587946f45b420918904-3"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0003 seconds] -->
+<p></p>
+<h1></h1>
+<h1><strong>3、fat-aar实现分析</strong></h1>
+<p>按照上面的步骤我们创建一个<strong>fat-library</strong>并embedded两个aar工程：library-one和library-two，build.gradle的dependencies配置如下：</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f45e221383091" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    embedded project(':library-one')
+    embedded project(':library-two')
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f45e221383091-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f45e221383091-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f45e221383091-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f45e221383091-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f45e221383091-5">5</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f45e221383091-1"><span class="crayon-e">dependencies</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f45e221383091-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">compile </span><span class="crayon-e">fileTree</span><span class="crayon-sy">(</span><span class="crayon-v">dir</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'libs'</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">include</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-sy">[</span><span class="crayon-s">'*.jar'</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f45e221383091-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">embedded </span><span class="crayon-e">project</span><span class="crayon-sy">(</span><span class="crayon-s">':library-one'</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f45e221383091-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">embedded </span><span class="crayon-e">project</span><span class="crayon-sy">(</span><span class="crayon-s">':library-two'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f45e221383091-5"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0005 seconds] -->
+<p></p>
+<h2><strong>3.1、fat-aar的配置阶段流程分析</strong></h2>
+<p><img data-attachment-id="1414" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/fat-aar/" data-orig-file="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?fit=788%2C962" data-orig-size="788,962" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="fat-aar evaluate" data-image-description="" data-medium-file="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?fit=205%2C250" data-large-file="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?fit=524%2C640" class="aligncenter size-full wp-image-1414" src="./fat-aar 实现分析-花花鞋_files/fat-aar.png" alt="" width="778" height="950" srcset="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?w=788 788w, https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?resize=205%2C250 205w, https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?resize=768%2C938 768w, https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar.png?resize=524%2C640 524w" sizes="(max-width: 788px) 100vw, 788px"></p>
+<p>fat-aar的配置流程是在gradle的<strong>afterEvaluate</strong>里面实现的，以下是对<strong>afterEvaluate</strong>的介绍：</p>
+<blockquote><p>在所有build.gradle解析完成后，开始执行task之前，此时所有的脚本已经解析完成，task，plugins等所有信息可以获取，task的依赖关系也已经生成，如果此时需要做一些事情，可以写在<code>afterEvaluate</code></p></blockquote>
+<p>fat-aar在这里做的事情主要包括2件事情：</p>
+<ul>
+<li>将所有embedded的aar里面的artifact（包括：aar或jar）文件都放在正确的目录，并记录它们的位置</li>
+<li>对fat-aar自定义的task配置好dependsOn，也就是依赖的先后顺序</li>
+</ul>
+<p>接下来详细的介绍<strong>afterEvaluate</strong>里面的每个流程点：</p>
+<p>&nbsp;</p>
+<h3><span style="color: #0000ff;"><strong>1. 获取embedded的所有直接依赖</strong></span></h3>
+<p>这里使用的是这样的代码：</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f461604785184" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">configurations.embedded.resolvedConfiguration.firstLevelModuleDependencies</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f461604785184-1">1</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f461604785184-1"><span class="crayon-v">configurations</span><span class="crayon-sy">.</span><span class="crayon-v">embedded</span><span class="crayon-sy">.</span><span class="crayon-v">resolvedConfiguration</span><span class="crayon-sy">.</span><span class="crayon-v">firstLevelModuleDependencies</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0002 seconds] -->
+<p>其中<strong>embedded</strong>是自定义的一种<strong>configuration</strong>, 然后通过<strong>dependencies</strong>把<strong>embedded</strong>配置的依赖 <strong>compile</strong>进来，具体实现如下：</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f463382615235" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">configurations {
+    embedded
+}
+
+dependencies {
+    compile configurations.embedded
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f463382615235-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f463382615235-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f463382615235-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f463382615235-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f463382615235-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f463382615235-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f463382615235-7">7</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f463382615235-1"><span class="crayon-e">configurations</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f463382615235-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-i">embedded</span></div><div class="crayon-line" id="crayon-5c3587946f463382615235-3"><span class="crayon-sy">}</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f463382615235-4">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f463382615235-5"><span class="crayon-e">dependencies</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f463382615235-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">compile </span><span class="crayon-v">configurations</span><span class="crayon-sy">.</span><span class="crayon-i">embedded</span></div><div class="crayon-line" id="crayon-5c3587946f463382615235-7"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0004 seconds] -->
+<p>firstLevelModuleDependencies的官方解释如下：</p>
+<blockquote><p>Returns the {@link ResolvedDependency} instances for each direct dependency of the configuration. Via those<br>
+you have access to all {@link ResolvedDependency} instances, including the transitive dependencies of the<br>
+configuration.</p>
+<p>返回configuration对应的直接依赖。通过这些直接依赖你可以访问所有的依赖实例，包括configuration的传递依赖</p></blockquote>
+<h3></h3>
+<h3><strong><span style="color: #0000ff;">2. 获取每一个依赖的aar artifact路径</span></strong></h3>
+<p>注意这里会由于工程的配置不同而导致最终生成的aar包经常出现以下两个问题：</p>
+<p><strong>问题1</strong>：如果你的gradleApiVersion &gt;=<strong>2.3</strong> , fat-aar默认会在build/intermediates/bundles/default目录下面去找，但是我们工程的目录bundles下面只有release，该怎么解决？:</p>
+<p><strong>问题2</strong>：aarPath是否可以修改？我想改一下这些临时文件的地方，方便clean时统一清除</p>
+<p><strong>问题1分析</strong>：我理解fat-aar设计的初衷只针对release环境的library 工程，而在gradleApiVersion &gt;=<strong>2.3</strong>时，gradle构建时多了一个default目录的概念，而此版本之前都是release，debug等。而fat-aar代码中写死了2.3用default：</p>
+<p><img data-attachment-id="2034" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/fat-aar-default/" data-orig-file="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-default.png?fit=695%2C118" data-orig-size="695,118" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="fat-aar-default" data-image-description="" data-medium-file="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-default.png?fit=375%2C64" data-large-file="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-default.png?fit=695%2C118" class="aligncenter size-full wp-image-2034" src="./fat-aar 实现分析-花花鞋_files/fat-aar-default.png" alt="" width="695" height="118" srcset="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-default.png?w=695 695w, https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-default.png?resize=375%2C64 375w" sizes="(max-width: 695px) 100vw, 695px"></p>
+<p>这样的话如果<span style="color: #800000;"><strong>library工程使用了publishNonDefault 并设置为true，则构建时不再是default目录，而是release目录了</strong></span></p>
+<blockquote>
+<div><code>publishNonDefault</code>配置的作用: 是否关闭默认发布配置 (true关闭, false开启)<br>
+因此最先想到的是: 关闭默认发布配置, 即将publishNonDefault设为true (言外之意, library的buildType会和主module的buildType保持一致了).</div>
+</blockquote>
+<p>解决办法：修改bundle_release_dir和aarPath变量的default为release，具体如下图：</p>
+<p><img data-attachment-id="2035" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/fat-aar-release/" data-orig-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?fit=804%2C452" data-orig-size="804,452" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="fat-aar-release" data-image-description="" data-medium-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?fit=375%2C211" data-large-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?fit=804%2C452" class="aligncenter size-full wp-image-2035" src="./fat-aar 实现分析-花花鞋_files/fat-aar-release.png" alt="" width="778" height="437" srcset="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?w=804 804w, https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?resize=375%2C211 375w, https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?resize=768%2C432 768w, https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-release.png?resize=128%2C72 128w" sizes="(max-width: 804px) 100vw, 804px"></p>
+<p>&nbsp;</p>
+<p><strong>问题2分析：</strong>aarpath不要修改它的路径（问题1提出的修改除外），我们讲一下它的作用，然后你就明白怎么正确的使用它了</p>
+<p><strong>aarPath的生成规则</strong>：aarPath是fat-aar 中每一个dependency的artifact所在的目录，最终fat-aar打aar时会它收集的所有aarPath（embeddedAarDirs）里面的资源都合并起来。这些aarPath 如果是本地project，它会按照下面的方式拼接找到它的aarPath:</p>
+<p><img data-attachment-id="2036" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/aarpath/" data-orig-file="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?fit=1084%2C405" data-orig-size="1084,405" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="aarPath" data-image-description="" data-medium-file="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?fit=375%2C140" data-large-file="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?fit=960%2C359" class="aligncenter size-full wp-image-2036" src="./fat-aar 实现分析-花花鞋_files/aarPath.png" alt="" width="778" height="291" srcset="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?w=1084 1084w, https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?resize=375%2C140 375w, https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?resize=768%2C287 768w, https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/aarPath.png?resize=960%2C359 960w" sizes="(max-width: 1000px) 100vw, 1000px"></p>
+<p><strong>问题2隐藏的风险</strong>：有时你发现aarPath下面找不到artifact资源，这个是什么情况呢？ 很多情况下你的project里面的目录名称和moduleName不是一致的，例如你改了moduleName让它更容易理解，那么此时fat-aar会仍然根据moduleName去找artifact目录（因为fat-aar认为moduleName即project目录名称），那么此时就找不到了。但如果你了解了aarPath的生成规则，你就不难发现此问题了。</p>
+<p>&nbsp;</p>
+<h3><span style="color: #0000ff;"><strong>3. 获取当前gradle版本对应的aar文件路径</strong></span></h3>
+<p>依赖的aar路径随着gradle的版本不同而不同：</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f467560455766" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">def aarPath;
+        if (gradleApiVersion &gt;= 2.3f)
+            aarPath = "${root_dir}/${it.moduleName}/build/intermediates/bundles/default"
+        else
+            aarPath = "${exploded_aar_dir}/${it.moduleGroup}/${it.moduleName}/${it.moduleVersion}"</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f467560455766-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f467560455766-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f467560455766-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f467560455766-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f467560455766-5">5</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f467560455766-1"><span class="crayon-e">def </span><span class="crayon-v">aarPath</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f467560455766-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-v">gradleApiVersion</span><span class="crayon-h"> </span><span class="crayon-o">&gt;=</span><span class="crayon-h"> </span><span class="crayon-cn">2.3f</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f467560455766-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">aarPath</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-s">"${root_dir}/${it.moduleName}/build/intermediates/bundles/default"</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f467560455766-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">else</span></div><div class="crayon-line" id="crayon-5c3587946f467560455766-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">aarPath</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-s">"${exploded_aar_dir}/${it.moduleGroup}/${it.moduleName}/${it.moduleVersion}"</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0005 seconds] -->
+<p>得到的aarPath是该gradle版本下依赖的aar资源的存放路径，注意当gradle版本&gt;=2.3时默认aar会下载到本地C盘的.gradle/caches目录，这里做了一步操作就是定义了一个新的目录赋值给aarPath，接下来会把C盘目录下面下载的aar资源拷贝到当前工程的aarPath目录下面。</p>
+<h3><strong><span style="color: #0000ff;">4.获取dependency的所有moduleArtifacts</span></strong></h3>
+<p>我们知道每个dependency会包含可能多个artifact（就是具体依赖的aar或jar文件），步骤3,4,5就是把这些artifact路径记录下来，对于gradle版本&gt;=2.3时会把artifact从C盘拷贝到当前指定的<strong>aarPath</strong>里面。这一步为接下来的aar合并做铺垫。</p>
+<h3><span style="color: #0000ff;"><strong>5、配置fat-aar自定义的task与gradle task的依赖关系和先后顺序</strong></span></h3>
+<p>我们知道生成aar的最直接task是bundleRelease或者bundleDebug等，由于fat-aar只处理release类型，所以fat-aar所有自定义的task都是在hook bundleRelease的子任务，这样最终改变bundleRelease的最终输出，生成一个我们想要的一个聚合了所有embedded资源的aar包。详细的task 依赖关系请参考下面的3.2节。</p>
+<h2><strong>3.2、fat-aar task依赖关系</strong></h2>
+<p><img data-attachment-id="1863" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/task-dependencies-2/" data-orig-file="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?fit=1183%2C594" data-orig-size="1183,594" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="task-dependencies" data-image-description="" data-medium-file="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?fit=375%2C188" data-large-file="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?fit=960%2C482" class="aligncenter size-full wp-image-1863" src="./fat-aar 实现分析-花花鞋_files/task-dependencies-1.png" alt="" width="778" height="391" srcset="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?w=1183 1183w, https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?resize=375%2C188 375w, https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?resize=768%2C386 768w, https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/task-dependencies-1.png?resize=960%2C482 960w" sizes="(max-width: 1000px) 100vw, 1000px"></p>
+<p><strong>蓝色</strong>为gradle自带的task，<strong>红色</strong>为fat-aar自定义的task。从图中可以看出来fat-aar主要对bundleRelease（打aar包的task）的子任务hook，这些子任务包括assets，resources，jni，manifest，java，R，proguard这些组成aar的必要资源的处理任务。通过hook将这些资源整合成fat-aar需要输出的一个聚合aar包。下面对这些task分别做分析：</p>
+<p>&nbsp;</p>
+
+<div id="tablepress-2_wrapper" class="dataTables_wrapper no-footer"><div class="dataTables_scroll"><div class="dataTables_scrollHead" style="overflow: hidden; position: relative; border: 0px; width: 100%;"><div class="dataTables_scrollHeadInner" style="box-sizing: content-box; width: 927px; padding-right: 0px;"><table class="tablepress tablepress-id-2 dataTable no-footer" role="grid" style="margin-left: 0px; width: 927px;"><thead>
+<tr class="row-1 odd" role="row"><th class="column-1 sorting" tabindex="0" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 75px;" aria-label="处理资源类型: 以升序排列此列">处理资源类型</th><th class="column-2 sorting" tabindex="0" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 159px;" aria-label="task名称: 以升序排列此列">task名称</th><th class="column-3 sorting" tabindex="0" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 292px;" aria-label="依赖的gradle task: 以升序排列此列">依赖的gradle task</th><th class="column-4 sorting" tabindex="0" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 400px;" aria-label="功能: 以升序排列此列">功能</th></tr>
+</thead></table></div></div><div class="dataTables_scrollBody" style="position: relative; overflow: auto; width: 100%;"><table id="tablepress-2" class="tablepress tablepress-id-2 dataTable no-footer" role="grid" aria-describedby="tablepress-2_info" style="width: 778px;"><thead>
+<tr class="row-1 odd" role="row" style="height: 0px;"><th class="column-1 sorting" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 75px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;">处理资源类型</div></th><th class="column-2 sorting" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 159px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;">task名称</div></th><th class="column-3 sorting" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 292px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;">依赖的gradle task</div></th><th class="column-4 sorting" aria-controls="tablepress-2" rowspan="1" colspan="1" style="width: 400px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;">功能</div></th></tr>
+</thead>
+
+<tbody class="row-hover">
+
+
+
+
+
+
+
+<tr class="row-2 even" role="row">
+	<td class="column-1">assets</td><td class="column-2">embedAssets</td><td class="column-3">prepareReleaseDependencies</td><td class="column-4">将所有embedded方式依赖的aar路径中assets目录追加到当前的fat-library工程对应的目录中来(android.sourceSets.main.assets.srcDirs+=file("$aarPath/assets"))</td>
+</tr><tr class="row-3 odd" role="row">
+	<td class="column-1">proguard</td><td class="column-2">embedProguard</td><td class="column-3">prepareReleaseDependencies</td><td class="column-4">将所有embedded方式依赖的aar路径中proguard.txt 中的内容append到当前的fat-library的proguard.txt里面</td>
+</tr><tr class="row-4 even" role="row">
+	<td class="column-1">res</td><td class="column-2">embedLibraryResources</td><td class="column-3">依赖：<br>
+embedProguard<br>
+prepareReleaseDependencies<br>
+<br>
+被依赖：<br>
+packageReleaseResources</td><td class="column-4">首先找到bundleRelease打res资源的task(packageReleaseResources)的输入，然后往输入中添加aar路径中的资源目录（$aarPath/res）</td>
+</tr><tr class="row-5 odd" role="row">
+	<td class="column-1">jni</td><td class="column-2">embedJniLibs</td><td class="column-3">transformNativeLibsWithSyncJniLibsForRelease</td><td class="column-4">将所有embedded方式依赖的aar路径中jni目录($aarPath/jni)中的文件拷贝到当前的fat-library工程对应的jni目录中来</td>
+</tr><tr class="row-6 even" role="row">
+	<td class="column-1">manifest</td><td class="column-2">embedManifests</td><td class="column-3">processReleaseManifest</td><td class="column-4">将embedded library里面的manifest和当前fat-library的manifest合并(使用ManifestMerger2)，输出替换当前工程的manifest.xml和替换aapt生成的manifest.xml(即：build/intermediates/manifests/aapt/release/AndroidManifest.xml)</td>
+</tr><tr class="row-7 odd" role="row">
+	<td class="column-1">R.java</td><td class="column-2">generateRJava</td><td class="column-3">processReleaseResources<br>
+被依赖：collectRClass, embedRClass,embedJavaJars</td><td class="column-4">该task负责把embedded依赖的aar工程里面的R.java的资源id引用都指向当前library工程（fat-library）的R.java文件里面来。</td>
+</tr><tr class="row-8 even" role="row">
+	<td class="column-1">Java</td><td class="column-2">embedJavaJars</td><td class="column-3">compileReleaseJavaWithJavac</td><td class="column-4">1.将所有embedded方式依赖的aar路径中classes.jar里面的class拷贝到fat-library的build/intermediates/classes/release目录下面<br>
+2.将所有embedded方式依赖的aar路径中libs目录下面的jar文件拷贝到当前fat-library的build目录下面（fat-library/build/intermediates/bundles/default/libs）<br>
+3.将所有embedded方式依赖的jar artifact也拷贝到当前的fat-library的build目录下面（同上）</td>
+</tr></tbody>
+</table></div></div><div class="dataTables_info" id="tablepress-2_info" role="status" aria-live="polite">显示第 1 至 7 项结果，共 7 项</div></div>
+<span class="tablepress-table-description tablepress-table-description-id-2"></span>
+<!-- #tablepress-2 from cache -->
+<h3><strong><br>
+3.2.1、embedManifests task</strong></h3>
+<p>一张图来描述embeddedManifest task的流程，一句话总结这个流程是将embedded library里面的manifest和当前fat-library的manifest合并，输出替换当前工程的manifest.xml和替换aapt生成的manifest.xml(<strong>即：build/intermediates/manifests/aapt/release/AndroidManifest.xml</strong>)</p>
+<p><img data-attachment-id="1425" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/m1/" data-orig-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/m1.png?fit=758%2C833" data-orig-size="758,833" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="fat-aar embedManifests" data-image-description="" data-medium-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/m1.png?fit=227%2C250" data-large-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/m1.png?fit=582%2C640" class="aligncenter size-full wp-image-1425" src="./fat-aar 实现分析-花花鞋_files/m1.png" alt="" width="758" height="833" srcset="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/m1.png?w=758 758w, https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/m1.png?resize=227%2C250 227w, https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/m1.png?resize=582%2C640 582w" sizes="(max-width: 758px) 100vw, 758px"></p>
+<p>&nbsp;</p>
+<h3><strong>3.2.2、generateRJava</strong> task</h3>
+<p><strong>功能描述：</strong>generateRJava是dependsOn&nbsp;<strong>processReleaseResources</strong> 的<strong>，</strong>该task负责把<strong>embedded</strong>依赖的aar工程里面的R.java的资源id引用都指向当前library工程（fat-library）的R.java文件里面来。如果不执行<strong>generateRJava会</strong>怎么样呢？我们单独执行<strong>processReleaseResources</strong> task，打开<strong>library-one</strong>和<strong>fat-library</strong>的R.java是这样的<strong>：</strong></p>
+<p><span style="color: #0000ff;">library-one:</span></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f46b436289806" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">package test.conio.com.libraryone;
+
+public final class R {
+    public static final class attr {
+    }
+    public static final class string {
+        public static int app_name=0x7f020000;
+        public static int lirary_one_res=0x7f020001;
+    }
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f46b436289806-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46b436289806-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f46b436289806-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46b436289806-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f46b436289806-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46b436289806-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f46b436289806-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46b436289806-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f46b436289806-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46b436289806-10">10</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f46b436289806-1"><span class="crayon-t">package</span><span class="crayon-h"> </span><span class="crayon-v">test</span><span class="crayon-sy">.</span><span class="crayon-v">conio</span><span class="crayon-sy">.</span><span class="crayon-v">com</span><span class="crayon-sy">.</span><span class="crayon-v">libraryone</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46b436289806-2">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f46b436289806-3"><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-e">R</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46b436289806-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-e">attr</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f46b436289806-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46b436289806-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-t">string</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f46b436289806-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">app_name</span><span class="crayon-o">=</span><span class="crayon-cn">0x7f020000</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46b436289806-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">lirary_one_res</span><span class="crayon-o">=</span><span class="crayon-cn">0x7f020001</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5c3587946f46b436289806-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46b436289806-10"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0010 seconds] -->
+<p><span style="color: #0000ff;">fat-library:</span></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f46e651766364" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">package test.conio.com.fatlibrary;
+
+public final class R {
+
+    public static final class string {
+        public static int app_name=0x7f020000;
+        public static int library_two_res=0x7f020001;
+        public static int lirary_one_res=0x7f020002;
+        public static int publish_res=0x7f020003;
+    }
+...
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f46e651766364-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46e651766364-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f46e651766364-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46e651766364-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f46e651766364-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46e651766364-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f46e651766364-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46e651766364-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f46e651766364-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46e651766364-10">10</div><div class="crayon-num" data-line="crayon-5c3587946f46e651766364-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f46e651766364-12">12</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f46e651766364-1"><span class="crayon-t">package</span><span class="crayon-h"> </span><span class="crayon-v">test</span><span class="crayon-sy">.</span><span class="crayon-v">conio</span><span class="crayon-sy">.</span><span class="crayon-v">com</span><span class="crayon-sy">.</span><span class="crayon-v">fatlibrary</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46e651766364-2">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f46e651766364-3"><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-e">R</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46e651766364-4">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f46e651766364-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-t">string</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46e651766364-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">app_name</span><span class="crayon-o">=</span><span class="crayon-cn">0x7f020000</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5c3587946f46e651766364-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">library_two_res</span><span class="crayon-o">=</span><span class="crayon-cn">0x7f020001</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46e651766364-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">lirary_one_res</span><span class="crayon-o">=</span><span class="crayon-cn">0x7f020002</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5c3587946f46e651766364-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">publish_res</span><span class="crayon-o">=</span><span class="crayon-cn">0x7f020003</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46e651766364-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-5c3587946f46e651766364-11"><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f46e651766364-12"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0011 seconds] -->
+<p>执行完<strong>generateRJava task</strong>后，<strong>library-one</strong>的R.java会在上面结果的基础上将资源ID指向了<strong>fat-library</strong>工程的资源id，最终<strong>library-one</strong>的R.java如下：</p>
+<p><span style="color: #0000ff;">library-one:</span></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f470110996592" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">package test.conio.com.libraryone;
+
+public final class R {
+  public static final class string {
+    public static int app_name = test.conio.com.fatlibrary.R.string.app_name;
+    public static int lirary_one_res = test.conio.com.fatlibrary.R.string.lirary_one_res;
+    }
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f470110996592-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f470110996592-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f470110996592-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f470110996592-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f470110996592-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f470110996592-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f470110996592-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f470110996592-8">8</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f470110996592-1"><span class="crayon-t">package</span><span class="crayon-h"> </span><span class="crayon-v">test</span><span class="crayon-sy">.</span><span class="crayon-v">conio</span><span class="crayon-sy">.</span><span class="crayon-v">com</span><span class="crayon-sy">.</span><span class="crayon-v">libraryone</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f470110996592-2">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f470110996592-3"><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-e">R</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f470110996592-4"><span class="crayon-h">&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-m">final</span><span class="crayon-h"> </span><span class="crayon-t">class</span><span class="crayon-h"> </span><span class="crayon-t">string</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f470110996592-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">app_name</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">test</span><span class="crayon-sy">.</span><span class="crayon-v">conio</span><span class="crayon-sy">.</span><span class="crayon-v">com</span><span class="crayon-sy">.</span><span class="crayon-v">fatlibrary</span><span class="crayon-sy">.</span><span class="crayon-v">R</span><span class="crayon-sy">.</span><span class="crayon-t">string</span><span class="crayon-sy">.</span><span class="crayon-v">app_name</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f470110996592-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-m">static</span><span class="crayon-h"> </span><span class="crayon-t">int</span><span class="crayon-h"> </span><span class="crayon-v">lirary_one_res</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">test</span><span class="crayon-sy">.</span><span class="crayon-v">conio</span><span class="crayon-sy">.</span><span class="crayon-v">com</span><span class="crayon-sy">.</span><span class="crayon-v">fatlibrary</span><span class="crayon-sy">.</span><span class="crayon-v">R</span><span class="crayon-sy">.</span><span class="crayon-t">string</span><span class="crayon-sy">.</span><span class="crayon-v">lirary_one_res</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5c3587946f470110996592-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f470110996592-8"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0011 seconds] -->
+<p>&nbsp;</p>
+<p><strong>实现分析:</strong></p>
+<p>找到fat-aar里面的<strong>generateRJava task</strong></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f473483563545" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">task generateRJava &lt;&lt; {
+...
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f473483563545-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f473483563545-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f473483563545-3">3</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f473483563545-1"><span class="crayon-e">task</span><span class="crayon-h"> </span><span class="crayon-e">generateRJava</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f473483563545-2"><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line" id="crayon-5c3587946f473483563545-3"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0002 seconds] -->
+<p>首先它会获取当前fat-library工程的包名</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f475349474423" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">    // Now generate the R.java file for each embedded dependency
+    def mainManifestFile = android.sourceSets.main.manifest.srcFile;
+    println("[generateRJava][1] mainManifestFile:"+mainManifestFile.getPath());
+    def libPackageName = "";
+
+    if(mainManifestFile.exists()) {
+
+        libPackageName = new XmlParser().parse(mainManifestFile).@package
+    }</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f475349474423-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f475349474423-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f475349474423-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f475349474423-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f475349474423-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f475349474423-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f475349474423-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f475349474423-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f475349474423-9">9</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f475349474423-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// Now generate the R.java file for each embedded dependency</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f475349474423-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">mainManifestFile</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">android</span><span class="crayon-sy">.</span><span class="crayon-v">sourceSets</span><span class="crayon-sy">.</span><span class="crayon-v">main</span><span class="crayon-sy">.</span><span class="crayon-v">manifest</span><span class="crayon-sy">.</span><span class="crayon-v">srcFile</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5c3587946f475349474423-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">println</span><span class="crayon-sy">(</span><span class="crayon-s">"[generateRJava][1] mainManifestFile:"</span><span class="crayon-o">+</span><span class="crayon-v">mainManifestFile</span><span class="crayon-sy">.</span><span class="crayon-e">getPath</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f475349474423-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">libPackageName</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-s">""</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-5c3587946f475349474423-5">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f475349474423-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-sy">(</span><span class="crayon-v">mainManifestFile</span><span class="crayon-sy">.</span><span class="crayon-e">exists</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f475349474423-7">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f475349474423-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">libPackageName</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">XmlParser</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">parse</span><span class="crayon-sy">(</span><span class="crayon-v">mainManifestFile</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-n">@package</span></div><div class="crayon-line" id="crayon-5c3587946f475349474423-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0009 seconds] -->
+<p>它会先找到当前fat-library工程的manifest文件路径，<strong>android.sourceSets.main.manifest.srcFile </strong>返回的是xxx\src\main\AndroidManifest.xml ，如果Manifest文件存在则读取里面的package属性，并存放在<strong>libPackageName</strong>变量中。这个<strong>libPackageName</strong>在后面逻辑中用于embedded工程（library-one和library-two）的R.java中的资源ID指向fat-library的R.java资源ID时使用。</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f477147308897" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">    embeddedAarDirs.each { aarPath -&gt;
+
+        def manifestFile = file("$aarPath/AndroidManifest.xml");
+        if(!manifestFile.exists()) {
+            manifestFile = file("./src/main/AndroidManifest.xml");
+        }
+
+        if(manifestFile.exists()) {
+            def aarManifest = new XmlParser().parse(manifestFile);
+            def aarPackageName = aarManifest.@package
+
+            String packagePath = aarPackageName.replace('.', '/')
+
+            // Generate the R.java file and map to current project's R.java
+            // This will recreate the class file
+            def rTxt = file("$aarPath/R.txt")
+            def rMap = new ConfigObject()
+
+            if (rTxt.exists()) {
+                rTxt.eachLine {
+                    line -&gt;
+                        //noinspection GroovyUnusedAssignment
+                        def (type, subclass, name, value) = line.tokenize(' ')
+                        rMap[subclass].putAt(name, type)
+                }
+            }</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f477147308897-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-10">10</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-12">12</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-14">14</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-15">15</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-16">16</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-17">17</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-18">18</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-19">19</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-20">20</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-21">21</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-22">22</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-23">23</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-24">24</div><div class="crayon-num" data-line="crayon-5c3587946f477147308897-25">25</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f477147308897-26">26</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f477147308897-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">embeddedAarDirs</span><span class="crayon-sy">.</span><span class="crayon-st">each</span><span class="crayon-h"> </span><span class="crayon-sy">{</span><span class="crayon-h"> </span><span class="crayon-v">aarPath</span><span class="crayon-h"> </span><span class="crayon-o">-&gt;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-2">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f477147308897-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">manifestFile</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$aarPath/AndroidManifest.xml"</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-sy">(</span><span class="crayon-o">!</span><span class="crayon-v">manifestFile</span><span class="crayon-sy">.</span><span class="crayon-e">exists</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">manifestFile</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"./src/main/AndroidManifest.xml"</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-7">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-sy">(</span><span class="crayon-v">manifestFile</span><span class="crayon-sy">.</span><span class="crayon-e">exists</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">aarManifest</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">XmlParser</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">parse</span><span class="crayon-sy">(</span><span class="crayon-v">manifestFile</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">aarPackageName</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">aarManifest</span><span class="crayon-sy">.</span><span class="crayon-n">@package</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-11">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-t">String</span><span class="crayon-h"> </span><span class="crayon-v">packagePath</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">aarPackageName</span><span class="crayon-sy">.</span><span class="crayon-e">replace</span><span class="crayon-sy">(</span><span class="crayon-s">'.'</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-s">'/'</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-13">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// Generate the R.java file and map to current project's R.java</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// This will recreate the class file</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">rTxt</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$aarPath/R.txt"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def </span><span class="crayon-v">rMap</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">ConfigObject</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-18">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f477147308897-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-v">rTxt</span><span class="crayon-sy">.</span><span class="crayon-e">exists</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">rTxt</span><span class="crayon-sy">.</span><span class="crayon-i">eachLine</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-21"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">line</span><span class="crayon-h"> </span><span class="crayon-o">-&gt;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-22"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">//noinspection GroovyUnusedAssignment</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-23"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">def</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-v">type</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">subclass</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">name</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">value</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">line</span><span class="crayon-sy">.</span><span class="crayon-e">tokenize</span><span class="crayon-sy">(</span><span class="crayon-s">' '</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-24"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">rMap</span><span class="crayon-sy">[</span><span class="crayon-v">subclass</span><span class="crayon-sy">]</span><span class="crayon-sy">.</span><span class="crayon-e">putAt</span><span class="crayon-sy">(</span><span class="crayon-v">name</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">type</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f477147308897-25"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f477147308897-26"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0024 seconds] -->
+<p>上面这段代码是把遍历embedded的aar依赖，把他们的R.txt种的<strong>subclass</strong>，<strong>name</strong>和<strong>type</strong>读取出来存放在Map。注意这里没有存放<strong>value</strong>，是因为此时fat-library的R.java已经包含了所有依赖的aar工程的资源ID值了，这里仅仅是为后续用<strong>subclass</strong>, <strong>name</strong>和<strong>type</strong>来映射到这些值</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f47a850662011" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">def sb = "package $aarPackageName;" &lt;&lt; '\n' &lt;&lt; '\n'
+            sb &lt;&lt; 'public final class R {' &lt;&lt; '\n'
+
+            rMap.each {
+                subclass, values -&gt;
+                    sb &lt;&lt; "  public static final class $subclass {" &lt;&lt; '\n'
+                    values.each {
+                        name, type -&gt;
+                            sb &lt;&lt; "    public static $type $name = ${libPackageName}.R.${subclass}.${name};" &lt;&lt; '\n'
+                    }
+                    sb &lt;&lt; "    }" &lt;&lt; '\n'
+            }
+
+            sb &lt;&lt; '}' &lt;&lt; '\n'
+
+            mkdir("$generated_rsrc_dir/$packagePath")
+            file("$generated_rsrc_dir/$packagePath/R.java").write(sb.toString())
+
+            embeddedRClasses += "$packagePath/R.class"
+            embeddedRClasses += "$packagePath/R\$*.class"</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-9">9</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-10">10</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-11">11</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-12">12</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-13">13</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-14">14</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-15">15</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-16">16</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-17">17</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-18">18</div><div class="crayon-num" data-line="crayon-5c3587946f47a850662011-19">19</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47a850662011-20">20</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f47a850662011-1"><span class="crayon-e">def </span><span class="crayon-v">sb</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-s">"package $aarPackageName;"</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">sb</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'public final class R {'</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-3">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">rMap</span><span class="crayon-sy">.</span><span class="crayon-st">each</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">subclass</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">values</span><span class="crayon-h"> </span><span class="crayon-o">-&gt;</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">sb</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">"&nbsp;&nbsp;public static final class $subclass {"</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">values</span><span class="crayon-sy">.</span><span class="crayon-st">each</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">name</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">type</span><span class="crayon-h"> </span><span class="crayon-o">-&gt;</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">sb</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">"&nbsp;&nbsp;&nbsp;&nbsp;public static $type $name = ${libPackageName}.R.${subclass}.${name};"</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">sb</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">"&nbsp;&nbsp;&nbsp;&nbsp;}"</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-13">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">sb</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'}'</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-s">'\n'</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-15">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">mkdir</span><span class="crayon-sy">(</span><span class="crayon-s">"$generated_rsrc_dir/$packagePath"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f47a850662011-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$generated_rsrc_dir/$packagePath/R.java"</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">write</span><span class="crayon-sy">(</span><span class="crayon-v">sb</span><span class="crayon-sy">.</span><span class="crayon-e">toString</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-18">&nbsp;</div><div class="crayon-line" id="crayon-5c3587946f47a850662011-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">embeddedRClasses</span><span class="crayon-h"> </span><span class="crayon-o">+=</span><span class="crayon-h"> </span><span class="crayon-s">"$packagePath/R.class"</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47a850662011-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">embeddedRClasses</span><span class="crayon-h"> </span><span class="crayon-o">+=</span><span class="crayon-h"> </span><span class="crayon-s">"$packagePath/R\$*.class"</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0016 seconds] -->
+<p>接下来上面的代码是用Map来生成该embedded aar（例如：library-one）工程的<strong>R.java</strong>文件，我们可以看到这个R文件路径就是根据该embedded aar的包名创建的。</p>
+<h3><strong>3.2.3、fat-aar如何实现将R.class合并</strong></h3>
+<p>上面介绍了<strong>generateRJava</strong> task，它的任务是做R文件合并和关联。但最终的aar包里面是如何包含这些R.class 的呢？我们来一张图描述generateRJava和其它task的关系：</p>
+<p><img data-attachment-id="1866" data-permalink="http://www.huahuaxie.com/fat-aar-implementation-analysis/fat-aar-r/" data-orig-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-R.png?fit=278%2C348" data-orig-size="278,348" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="fat-aar-R" data-image-description="" data-medium-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-R.png?fit=200%2C250" data-large-file="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-R.png?fit=278%2C348" class="aligncenter size-full wp-image-1866" src="./fat-aar 实现分析-花花鞋_files/fat-aar-R.png" alt="" width="278" height="348" srcset="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-R.png?w=278 278w, https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/04/fat-aar-R.png?resize=200%2C250 200w" sizes="(max-width: 278px) 100vw, 278px"></p>
+<p>每个task职责如下：</p>
+<p><strong>generateRJava</strong>: 做R文件合并和关联。将所有embed进来的aar里面的R文件都指向最外层的R文件。这样不会出现每个aar无法找到自己资源的情况了。</p>
+<p><strong>collectRClass</strong>: 将上面的R.class拷贝到build目录下面的<span style="color: #0000ff;">fat-aar/release</span>目录</p>
+<p><strong>embedRClass</strong>: 将build<span style="color: #0000ff;">/fat-aar/release</span>目录下面的R.class打包成Jar并输出到“<span style="color: #0000ff;">build/intermediates/bundles/default(或者release)/libs</span>”下面</p>
+<p><strong>embedJavaJars</strong>: 合并所有embed方式依赖的aar和jar里面的jar包（包括：classes.jar, libs里面的jar），并输出到“<span style="color: #0000ff;">build/intermediates/bundles/default(或者release)/libs</span>”下面</p>
+<p>&nbsp;</p>
+<h3><strong>遇到的问题：</strong></h3>
+<ol>
+<li>我曾今遇到过在“<span style="color: #0000ff;">build/intermediates/bundles/default(或者release)/libs</span>”居然没有任何jar文件的错误，这个原因是<span style="color: #800000;"><strong>transformClassesAndResourcesWithSyncLibJarsForRelease</strong></span> task会清除libs下面的jar。具体为什么会清除我还不清楚，希望知道的同学可以回复本文章。</li>
+</ol>
+<p style="padding-left: 30px;"><strong>解决方法：</strong></p>
+<p style="padding-left: 30px;">a. 在embedJavaJars task末尾将libs里面的内容拷贝到一个临时目录（例如：libs_tmp）, 代码如下：</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f47e167615803" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">task embedJavaJars(dependsOn: embedRClass) &lt;&lt; {   
+...
+        //解决transformClassesAndResourcesWithSyncLibJarsForRelease task会清除libs下面的jar问题
+        copy {
+            from file("$bundle_release_dir/libs")
+            into file("$bundle_release_dir/libs_temp")
+        }
+...
+}</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f47e167615803-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47e167615803-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f47e167615803-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47e167615803-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f47e167615803-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47e167615803-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f47e167615803-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f47e167615803-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f47e167615803-9">9</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f47e167615803-1"><span class="crayon-e">task </span><span class="crayon-e">embedJavaJars</span><span class="crayon-sy">(</span><span class="crayon-v">dependsOn</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-v">embedRClass</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-o">&lt;&lt;</span><span class="crayon-h"> </span><span class="crayon-sy">{</span><span class="crayon-h">&nbsp;&nbsp; </span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47e167615803-2"><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line" id="crayon-5c3587946f47e167615803-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">//解决transformClassesAndResourcesWithSyncLibJarsForRelease task会清除libs下面的jar问题</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47e167615803-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">copy</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-5c3587946f47e167615803-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">from </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$bundle_release_dir/libs"</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47e167615803-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">into </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$bundle_release_dir/libs_temp"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f47e167615803-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f47e167615803-8"><span class="crayon-sy">.</span><span class="crayon-sy">.</span><span class="crayon-sy">.</span></div><div class="crayon-line" id="crayon-5c3587946f47e167615803-9"><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0006 seconds] -->
+<p></p>
+<p style="padding-left: 30px;">b. 并在打aar包之前将libs_temp目录里面的内容复制回来，代码如下：</p>
+<p></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-5c3587946f481632372902" class="crayon-syntax crayon-theme-github crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style="margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important; height: auto;">
+		
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly="" style="tab-size: 4; font-size: 12px !important; line-height: 15px !important; z-index: 0; opacity: 0; overflow: hidden;">bundleRelease.doFirst {
+            //解决transformClassesAndResourcesWithSyncLibJarsForRelease task会清除libs下面的jar问题
+            copy {
+                from file("$bundle_release_dir/libs_temp")
+                into file("$bundle_release_dir/libs")
+            }
+
+            delete "$bundle_release_dir/libs_temp"
+        }</textarea></div>
+			<div class="crayon-main" style="position: relative; z-index: 1; overflow: hidden;">
+				<table class="crayon-table">
+					<tbody><tr class="crayon-row">
+				<td class="crayon-nums " data-settings="show">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-5c3587946f481632372902-1">1</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f481632372902-2">2</div><div class="crayon-num" data-line="crayon-5c3587946f481632372902-3">3</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f481632372902-4">4</div><div class="crayon-num" data-line="crayon-5c3587946f481632372902-5">5</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f481632372902-6">6</div><div class="crayon-num" data-line="crayon-5c3587946f481632372902-7">7</div><div class="crayon-num crayon-striped-num" data-line="crayon-5c3587946f481632372902-8">8</div><div class="crayon-num" data-line="crayon-5c3587946f481632372902-9">9</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-5c3587946f481632372902-1"><span class="crayon-v">bundleRelease</span><span class="crayon-sy">.</span><span class="crayon-i">doFirst</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f481632372902-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">//解决transformClassesAndResourcesWithSyncLibJarsForRelease task会清除libs下面的jar问题</span></div><div class="crayon-line" id="crayon-5c3587946f481632372902-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">copy</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f481632372902-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">from </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$bundle_release_dir/libs_temp"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-5c3587946f481632372902-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">into </span><span class="crayon-e">file</span><span class="crayon-sy">(</span><span class="crayon-s">"$bundle_release_dir/libs"</span><span class="crayon-sy">)</span></div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f481632372902-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-5c3587946f481632372902-7">&nbsp;</div><div class="crayon-line crayon-striped-line" id="crayon-5c3587946f481632372902-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-i">delete</span><span class="crayon-h"> </span><span class="crayon-s">"$bundle_release_dir/libs_temp"</span></div><div class="crayon-line" id="crayon-5c3587946f481632372902-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</tbody></table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0006 seconds] -->
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+<div id="jp-relatedposts" class="jp-relatedposts" style="display: block;">
+	<h3 class="jp-relatedposts-headline"><em>相关</em></h3>
+<div class="jp-relatedposts-items jp-relatedposts-items-visual jp-relatedposts-grid "><div class="jp-relatedposts-post jp-relatedposts-post0 jp-relatedposts-post-thumbs" data-post-id="73" data-post-format="false"><a class="jp-relatedposts-post-a" href="http://www.huahuaxie.com/gradle-usage/" title="gradle常用命令检索
+
+1. 打印gradle task 依赖关系 解决问题：我们经常发现gradle里面的task分析起来…" rel="nofollow" data-origin="1404" data-position="0"><img class="jp-relatedposts-post-img" src="./fat-aar 实现分析-花花鞋_files/fat1.png" width="244" alt="gradle常用命令检索" height="139" srcset="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2017/11/fat1.png?zoom=1.100000023841858&amp;resize=244%2C139" src-orig="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2017/11/fat1.png?resize=350%2C200" scale="1.100000023841858"></a><h4 class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://www.huahuaxie.com/gradle-usage/" title="gradle常用命令检索
+
+1. 打印gradle task 依赖关系 解决问题：我们经常发现gradle里面的task分析起来…" rel="nofollow" data-origin="1404" data-position="0">gradle常用命令检索</a></h4><p class="jp-relatedposts-post-excerpt">1. 打印gradle task 依赖关系 解决问题：我们经常发现gradle里面的task分析起来…</p><p class="jp-relatedposts-post-date" style="display: block;">2017年11月23日</p><p class="jp-relatedposts-post-context">在“gradle”中</p></div><div class="jp-relatedposts-post jp-relatedposts-post1 jp-relatedposts-post-thumbs" data-post-id="1648" data-post-format="false"><a class="jp-relatedposts-post-a" href="http://www.huahuaxie.com/config-bundle-app/" title="如何配置bundle app的动态交付
+
+如果你想要支持Google Play的动态交付功能，你首先需要配置你的工程来构建一个Android …" rel="nofollow" data-origin="1404" data-position="1"><img class="jp-relatedposts-post-img" src="./fat-aar 实现分析-花花鞋_files/dynamic-delivery.png" width="244" alt="如何配置bundle app的动态交付" height="139" srcset="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/05/dynamic-delivery.png?zoom=1.100000023841858&amp;resize=244%2C139" src-orig="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/05/dynamic-delivery.png?resize=350%2C200" scale="1.100000023841858"></a><h4 class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://www.huahuaxie.com/config-bundle-app/" title="如何配置bundle app的动态交付
+
+如果你想要支持Google Play的动态交付功能，你首先需要配置你的工程来构建一个Android …" rel="nofollow" data-origin="1404" data-position="1">如何配置bundle app的动态交付</a></h4><p class="jp-relatedposts-post-excerpt">如果你想要支持Google Play的动态交付功能，你首先需要配置你的工程来构建一个Android …</p><p class="jp-relatedposts-post-date" style="display: block;">2018年5月31日</p><p class="jp-relatedposts-post-context">在“android”中</p></div><div class="jp-relatedposts-post jp-relatedposts-post2 jp-relatedposts-post-thumbs" data-post-id="2413" data-post-format="false"><a class="jp-relatedposts-post-a" href="http://www.huahuaxie.com/apktool-source-analysis/" title="ApkTool 源码分析
+
+1、ApkTool介绍 它是一个为逆向工程师打造的用于反编译Android 二进制 app的工具。它…" rel="nofollow" data-origin="1404" data-position="2"><img class="jp-relatedposts-post-img" src="./fat-aar 实现分析-花花鞋_files/6a5b1682d88369a.png" width="244" alt="ApkTool 源码分析" height="139" srcset="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/12/6a5b1682d88369a.png?zoom=1.100000023841858&amp;resize=244%2C139" src-orig="https://i2.wp.com/www.huahuaxie.com/wp-content/uploads/2018/12/6a5b1682d88369a.png?resize=350%2C200" scale="1.100000023841858"></a><h4 class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://www.huahuaxie.com/apktool-source-analysis/" title="ApkTool 源码分析
+
+1、ApkTool介绍 它是一个为逆向工程师打造的用于反编译Android 二进制 app的工具。它…" rel="nofollow" data-origin="1404" data-position="2">ApkTool 源码分析</a></h4><p class="jp-relatedposts-post-excerpt">1、ApkTool介绍 它是一个为逆向工程师打造的用于反编译Android 二进制 app的工具。它…</p><p class="jp-relatedposts-post-date" style="display: block;">2018年12月8日</p><p class="jp-relatedposts-post-context">在“android”中</p></div></div></div>		</article>
+								            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="1404"><i class="fa fa-thumbs-o-up"></i>赞(<span>6</span>)</a>            	<a href="javascript:;" class="action action-rewards" data-event="rewards"><i class="fa fa-jpy"></i> 打赏</a>            	            </div>
+        		<div class="post-copyright">未经允许不得转载：<a href="http://www.huahuaxie.com/">花花鞋</a> » <a href="http://www.huahuaxie.com/fat-aar-implementation-analysis/">fat-aar 实现分析</a></div>		
+					<div class="action-share"><div class="bdsharebuttonbox bdshare-button-style0-24" data-bd-bind="1547013072304">
+<span>分享到：</span>
+<a class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"></a>
+<a class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+<a class="bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+<a class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"></a>
+<a class="bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+<a class="bds_bdhome" data-cmd="bdhome" title="分享到百度新首页"></a>
+<a class="bds_tqf" data-cmd="tqf" title="分享到腾讯朋友"></a>
+<a class="bds_youdao" data-cmd="youdao" title="分享到有道云笔记"></a>
+<a class="bds_more" data-cmd="more">更多</a> <span>(</span><a class="bds_count" data-cmd="count" title="累计分享0次">0</a><span>)</span>
+</div>
+<script>
+window._bd_share_config = {
+    common: {
+		"bdText"     : "",
+		"bdMini"     : "2",
+		"bdMiniList" : false,
+		"bdPic"      : "",
+		"bdStyle"    : "0",
+		"bdSize"     : "24"
+    },
+    share: [{
+        bdCustomStyle: "http://www.huahuaxie.com/wp-content/themes/dux-1/css/share.css"
+    }]
+}
+with(document)0[(getElementsByTagName("head")[0]||body).appendChild(createElement("script")).src="http://bdimg.share.baidu.com/static/api/js/share.js?cdnversion="+~(-new Date()/36e5)];
+</script></div>
+		
+		<div class="article-tags">标签：<a href="http://www.huahuaxie.com/tag/fat-aar/" rel="tag">fat-aar</a><a href="http://www.huahuaxie.com/tag/gradle/" rel="tag">gradle</a></div>
+		
+				<div class="article-author">
+			<img alt="" data-src="https://secure.gravatar.com/avatar/25e921a1e5bf2ad7bf1d97254239d586?s=50&amp;r=g&amp;default=http%3A%2F%2Fwww.huahuaxie.com%2Fwp-content%2Fplugins%2Fwp-first-letter-avatar%2Fimages%2Fdefault%2F96%2Fmystery.png" class="avatar avatar-50 photo wpfla round-avatars " width="50" height="50" scale="0" src="./fat-aar 实现分析-花花鞋_files/25e921a1e5bf2ad7bf1d97254239d586" style="display: block;">			<h4><i class="fa fa-user" aria-hidden="true"></i><a title="查看更多文章" href="http://www.huahuaxie.com/author/admin/">conio</a></h4>
+			快乐的小刚		</div>
+		
+		            <nav class="article-nav">
+                <span class="article-nav-prev">上一篇<br><a href="http://www.huahuaxie.com/github-%e5%b8%b8%e7%94%a8%e7%9a%84-chrome-%e6%8f%92%e4%bb%b6/" rel="prev">GitHub 常用的 Chrome 插件</a></span>
+                <span class="article-nav-next">下一篇<br><a href="http://www.huahuaxie.com/westudy-android-foreground-judge/" rel="next">微学习-android里面判断App处于前台还是后台</a></span>
+            </nav>
+        
+				<div class="relates relates-thumb"><div class="title"><h3>相关推荐</h3></div><ul><li><a href="http://www.huahuaxie.com/android-gradle-groovy-and-gradle/"><img data-src="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2019/01/2a7a7aed80e4d67.png?resize=220%2C150" alt="Android Gradle 之Groovy与Gradle-花花鞋" src="./fat-aar 实现分析-花花鞋_files/2a7a7aed80e4d67.png" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/android-gradle-groovy-and-gradle/">Android Gradle 之Groovy与Gradle</a></li><li><a href="http://www.huahuaxie.com/android-gradle-basic/"><img data-src="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/12/e8cd2443c51f918.jpg?resize=220%2C150" alt="Android Gradle 之Groovy基础介绍-花花鞋" src="./fat-aar 实现分析-花花鞋_files/e8cd2443c51f918.jpg" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/android-gradle-basic/">Android Gradle 之Groovy基础介绍</a></li><li><a href="http://www.huahuaxie.com/gradle_build02/"><img data-src="http://www.huahuaxie.com/wp-content/uploads/2018/08/gradle_logo.jpg" alt="Gradle源代码编译以及源代码分析（2）-花花鞋" src="./fat-aar 实现分析-花花鞋_files/gradle_logo.jpg" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/gradle_build02/">Gradle源代码编译以及源代码分析（2）</a></li><li><a href="http://www.huahuaxie.com/gradle-source-analysis_1/"><img data-src="http://www.huahuaxie.com/wp-content/uploads/2018/08/gradle_maven.png" alt="Gradle源代码编译以及源代码分析（1）-花花鞋" src="./fat-aar 实现分析-花花鞋_files/gradle_maven.png" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/gradle-source-analysis_1/">Gradle源代码编译以及源代码分析（1）</a></li><li><a href="http://www.huahuaxie.com/gradle%e5%a4%9a%e7%89%88%e6%9c%ac%e4%b8%8b%e4%ba%a7%e5%93%81%e8%b5%84%e6%ba%90%e5%92%8c%e4%bb%a3%e7%a0%81%e7%9a%84%e5%ae%9a%e5%88%b6/"><img data-src="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2017/12/8c4dd09848eb039.png?resize=220%2C150" alt="Gradle多版本下产品资源和代码的定制-花花鞋" src="./fat-aar 实现分析-花花鞋_files/8c4dd09848eb039.png" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/gradle%e5%a4%9a%e7%89%88%e6%9c%ac%e4%b8%8b%e4%ba%a7%e5%93%81%e8%b5%84%e6%ba%90%e5%92%8c%e4%bb%a3%e7%a0%81%e7%9a%84%e5%ae%9a%e5%88%b6/">Gradle多版本下产品资源和代码的定制</a></li><li><a href="http://www.huahuaxie.com/gradle-usage/"><img data-src="http://www.huahuaxie.com/wp-content/uploads/2017/11/fat1.png" alt="gradle常用命令检索-花花鞋" src="./fat-aar 实现分析-花花鞋_files/fat1(1).png" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/gradle-usage/">gradle常用命令检索</a></li><li><a href="http://www.huahuaxie.com/android-storage-adapter/"><img data-src="https://i1.wp.com/www.huahuaxie.com/wp-content/uploads/2018/12/127749e8d7759b2.png?resize=220%2C150" alt="Android 文件存储系统适配-花花鞋" src="./fat-aar 实现分析-花花鞋_files/127749e8d7759b2.png" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/android-storage-adapter/">Android 文件存储系统适配</a></li><li><a href="http://www.huahuaxie.com/apktool-source-analysis/"><img data-src="https://i0.wp.com/www.huahuaxie.com/wp-content/uploads/2018/12/3df0a8ba070d423.png?resize=151%2C55" alt="ApkTool 源码分析-花花鞋" src="./fat-aar 实现分析-花花鞋_files/3df0a8ba070d423.png" class="thumb" scale="0" style="display: block;"></a><a href="http://www.huahuaxie.com/apktool-source-analysis/">ApkTool 源码分析</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <small>抢沙发</small></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="http://www.huahuaxie.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt="" data-src="https://secure.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?s=50&amp;r=g&amp;default=http%3A%2F%2Fwww.huahuaxie.com%2Fwp-content%2Fplugins%2Fwp-first-letter-avatar%2Fimages%2Fdefault%2F96%2Fmystery.png" class="avatar avatar-50 photo wpfla round-avatars " width="50" height="50" scale="0" src="./fat-aar 实现分析-花花鞋_files/d41d8cd98f00b204e9800998ecf8427e" style="display: inline;">				<p><a id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById(&#39;submit&#39;).click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type="hidden" name="comment_post_ID" value="1404" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="aa6e70c34f"></p><p class="comment-subscription-form"><input type="checkbox" name="subscribe_comments" id="subscribe_comments" value="subscribe" style="width: auto; -moz-appearance: checkbox; -webkit-appearance: checkbox;"> <label class="subscribe-label" id="subscribe-label" for="subscribe_comments">通过邮件通知我后续评论</label></p><p class="comment-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto; -moz-appearance: checkbox; -webkit-appearance: checkbox;"> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog">通过邮件通知我有新文章</label></p><label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked">有人回复时邮件通知我</label><p style="display: none;"></p></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>
+
+												<div class="comt-comterinfo" id="comment-author-info">
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>
+
+	<input type="hidden" id="ak_js" name="ak_js" value="1547013072163"></form>
+	</div>
+	</div>
+	</div>
+	<div class="sidebar">
+<div class="widget widget_ui_tags"><h3>热门标签</h3><div class="items"><a href="http://www.huahuaxie.com/tag/%e4%b8%ad%e5%9b%bd%e4%bc%a0%e7%bb%9f%e6%96%87%e5%8c%96/">中国传统文化 (79)</a><a href="http://www.huahuaxie.com/tag/android/">android (41)</a><a href="http://www.huahuaxie.com/tag/%e4%ba%92%e8%81%94%e7%bd%91/">互联网 (29)</a><a href="http://www.huahuaxie.com/tag/%e5%8c%ba%e5%9d%97%e9%93%be/">区块链 (8)</a><a href="http://www.huahuaxie.com/tag/gradle/">gradle (7)</a><a href="http://www.huahuaxie.com/tag/%e6%ba%90%e7%a0%81/">源码 (5)</a><a href="http://www.huahuaxie.com/tag/%e6%9e%b6%e6%9e%84/">架构 (5)</a><a href="http://www.huahuaxie.com/tag/%e7%94%9f%e6%b4%bb/">生活 (4)</a><a href="http://www.huahuaxie.com/tag/%e5%be%ae%e5%ad%a6%e4%b9%a0/">微学习 (4)</a><a href="http://www.huahuaxie.com/tag/%e7%bc%96%e8%af%91/">编译 (3)</a><a href="http://www.huahuaxie.com/tag/webview/">webview (3)</a><a href="http://www.huahuaxie.com/tag/%e5%a4%9a%e7%ba%bf%e7%a8%8b/">多线程 (2)</a><a href="http://www.huahuaxie.com/tag/%e6%8f%92%e4%bb%b6%e5%8c%96/">插件化 (2)</a><a href="http://www.huahuaxie.com/tag/git/">git (1)</a><a href="http://www.huahuaxie.com/tag/freemarker/">freemarker (1)</a><a href="http://www.huahuaxie.com/tag/%e5%ae%89%e5%85%a8/">安全 (1)</a><a href="http://www.huahuaxie.com/tag/jvm/">JVM (1)</a><a href="http://www.huahuaxie.com/tag/deepin/">deepin (1)</a><a href="http://www.huahuaxie.com/tag/ubuntu/">Ubuntu (1)</a><a href="http://www.huahuaxie.com/tag/%e5%b0%8f%e7%a8%8b%e5%ba%8f/">小程序 (1)</a><a href="http://www.huahuaxie.com/tag/%e7%bb%8f%e9%aa%8c%e4%b8%8e%e6%8a%80%e5%b7%a7/">经验与技巧 (1)</a><a href="http://www.huahuaxie.com/tag/fat-aar/">fat-aar (1)</a><a href="http://www.huahuaxie.com/tag/apktool/">apktool (1)</a></div></div><div class="widget widget_ui_asb"><div class="item"><a href="https://androidweekly.io/"><img src="./fat-aar 实现分析-花花鞋_files/33ae521e1271d76.png" scale="0"></a></div></div><div class="widget widget_ui_posts"><h3>热门文章</h3><ul class="nopic"><li><a href="http://www.huahuaxie.com/git-usage/"><span class="text">git常用命令检索</span><span class="muted">2017-11-23</span></a></li>
+<li><a href="http://www.huahuaxie.com/2018-google-io-new-in-android/"><span class="text">2018 Google I/O 开发者大会第一天，快来看看我们都发布了哪些新亮点！ <span>2018 Google I/O</span></span><span class="muted">2018-05-09</span></a></li>
+<li><a href="http://www.huahuaxie.com/fedora27-%e4%b8%8a%e6%90%ad%e5%bb%baandroid%e5%bc%80%e5%8f%91%e7%8e%af%e5%a2%831-%e5%9c%a8%e7%ac%94%e8%ae%b0%e6%9c%ac%e4%b8%8a%e5%ae%89%e8%a3%85%e5%8f%8c%e6%98%be%e5%8d%a1%e9%a9%b1%e5%8a%a8/"><span class="text">Fedora27 上搭建android开发环境1-在笔记本上安装双显卡驱动</span><span class="muted">2017-12-27</span></a></li>
+<li><a href="http://www.huahuaxie.com/android-repackage-changepkgname/"><span class="text">android-重打包-改包名</span><span class="muted">2018-07-21</span></a></li>
+<li><a href="http://www.huahuaxie.com/gradle%e5%a4%9a%e7%89%88%e6%9c%ac%e4%b8%8b%e4%ba%a7%e5%93%81%e8%b5%84%e6%ba%90%e5%92%8c%e4%bb%a3%e7%a0%81%e7%9a%84%e5%ae%9a%e5%88%b6/"><span class="text">Gradle多版本下产品资源和代码的定制</span><span class="muted">2017-12-22</span></a></li>
+<li><a href="http://www.huahuaxie.com/android-gradle-groovy-and-gradle/"><span class="text">Android Gradle 之Groovy与Gradle</span><span class="muted">2019-01-05</span></a></li>
+</ul></div></div></section>
+
+<div class="branding branding-black">
+	<div class="container">
+		<h2>国内精品Android技术社区</h2>
+		<a target="blank" class="btn btn-lg" href="https://huahuaxie.com/">联系我们</a>	</div>
+</div>
+<footer class="footer">
+	<div class="container">
+						<p>© 2019 <a href="http://www.huahuaxie.com/">花花鞋</a> &nbsp; <a href="http://www.miitbeian.gov.cn/">粤ICP备17013466号</a>
+
+<a href="http://www.huahuaxie.com/sitemap.xml">网站地图</a>
+</p>
+		<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?dc60c406147e8f5cc72413404de2ee86";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+	</div>
+</footer>
+
+	<div class="rewards-popover-mask" data-event="rewards-close"></div>
+	<div class="rewards-popover">
+		<h3>觉得文章有用就打赏一下文章作者</h3>
+				<div class="rewards-popover-item">
+			<h4>支付宝扫一扫打赏</h4>
+			<img src="./fat-aar 实现分析-花花鞋_files/zfb.png" scale="0">
+		</div>
+						<div class="rewards-popover-item">
+			<h4>微信扫一扫打赏</h4>
+			<img src="./fat-aar 实现分析-花花鞋_files/wx.png" scale="0">
+		</div>
+				<span class="rewards-popover-close" data-event="rewards-close"><i class="fa fa-close"></i></span>
+	</div>
+
+<div class="rollbar rollbar-rb"><ul><li><a target="_blank" href="http://wpa.qq.com/msgrd?v=3&amp;uin=414063413&amp;site=qq&amp;menu=yes"><i class="fa fa-qq"></i><span>QQ咨询</span></a><h6>QQ咨询<i></i></h6></li><li class="rollbar-qrcode"><a href="javascript:;"><i class="fa fa-qrcode"></i><span>微信咨询</span></a><h6>关注微信<img src="./fat-aar 实现分析-花花鞋_files/qrcode_for_gh_f720e8bb3091_258.jpg" scale="0"><i></i></h6></li><li class="rollbar-totop" style="display: none;"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'http://www.huahuaxie.com',
+	uri: 'http://www.huahuaxie.com/wp-content/themes/3c265072e5a9105',
+	ver: '5.2',
+	roll: ["1","2"],
+	ajaxpager: '5',
+	url_rp: 'http://www.huahuaxie.com/%e4%bf%ae%e6%94%b9%e5%af%86%e7%a0%81/'
+};
+</script>
+	<div style="display:none">
+	<div class="grofile-hash-map-25e921a1e5bf2ad7bf1d97254239d586">
+	</div>
+	</div>
+<!--[if lte IE 8]>
+<link rel='stylesheet' id='jetpack-carousel-ie8fix-css'  href='http://www.huahuaxie.com/wp-content/plugins/jetpack/modules/carousel/jetpack-carousel-ie8fix.css?ver=20121024' type='text/css' media='all' />
+<![endif]-->
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/photon.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/editor.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/devicepx-jetpack.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/smartideo.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/gprofiles.js.下载"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/wpgroho.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/bootstrap.min.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/loader.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/wp-embed.min.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/spin.min.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/jquery.spin.min.js.下载"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var jetpackCarouselStrings = {"widths":[370,700,1000,1200,1400,2000],"is_logged_in":"","lang":"zh","ajaxurl":"http:\/\/www.huahuaxie.com\/wp-admin\/admin-ajax.php","nonce":"0d42f17f76","display_exif":"1","display_geo":"1","single_image_gallery":"1","single_image_gallery_media_file":"","background_color":"white","comment":"\u6761\u8bc4\u8bba","post_comment":"\u53d1\u8868\u8bc4\u8bba","write_comment":"\u64b0\u5199\u8bc4\u8bba...","loading_comments":"\u6b63\u5728\u52a0\u8f7d\u8bc4\u8bba...","download_original":"\u67e5\u770b\u5168\u5c3a\u5bf8 <span class=\"photo-size\">{0}<span class=\"photo-size-times\">\u00d7<\/span>{1}<\/span>","no_comment_text":"\u8bf7\u786e\u4fdd\u4e0e\u60a8\u7684\u8bc4\u8bba\u4e00\u8d77\u63d0\u4ea4\u90e8\u5206\u6587\u672c\u3002","no_comment_email":"\u8bf7\u63d0\u4f9b\u7528\u4e8e\u53d1\u8868\u8bc4\u8bba\u7684\u7535\u5b50\u90ae\u4ef6\u5730\u5740\u3002","no_comment_author":"\u8bf7\u63d0\u4f9b\u60a8\u7528\u4e8e\u53d1\u8868\u8bc4\u8bba\u7684\u59d3\u540d\u3002","comment_post_error":"\u62b1\u6b49\uff0c\u53d1\u8868\u60a8\u7684\u8bc4\u8bba\u65f6\u51fa\u9519\u3002\u8bf7\u7a0d\u540e\u91cd\u8bd5\u3002","comment_approved":"\u60a8\u7684\u8bc4\u8bba\u5df2\u83b7\u5f97\u6279\u51c6\u3002","comment_unapproved":"\u6b63\u5728\u5ba1\u6838\u60a8\u7684\u8bc4\u8bba\u3002","camera":"\u7167\u76f8\u673a","aperture":"\u5149\u5708","shutter_speed":"\u5feb\u95e8\u901f\u5ea6","focal_length":"\u7126\u8ddd","copyright":"\u7248\u6743","comment_registration":"0","require_name_email":"1","login_url":"http:\/\/www.huahuaxie.com\/wp-login.php?redirect_to=http%3A%2F%2Fwww.huahuaxie.com%2Ffat-aar-implementation-analysis%2F","blog_id":"1","meta_data":["camera","aperture","shutter_speed","focal_length","copyright"],"local_comments_commenting_as":"<fieldset><label for=\"email\">\u7535\u5b50\u90ae\u7bb1\uff08\u5fc5\u586b\uff09<\/label> <input type=\"text\" name=\"email\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-email-field\" \/><\/fieldset><fieldset><label for=\"author\">\u540d\u79f0\uff08\u5fc5\u586b\uff09<\/label> <input type=\"text\" name=\"author\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-author-field\" \/><\/fieldset><fieldset><label for=\"url\">\u7f51\u5740<\/label> <input type=\"text\" name=\"url\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-url-field\" \/><\/fieldset>"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/jetpack-carousel.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/jquery.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/jquery.datatables.min.js.下载"></script>
+<script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/form.js.下载"></script>
+<script type="text/javascript">
+jQuery(document).ready(function($){
+var DataTables_language={};
+DataTables_language["zh_CN"]={"emptyTable":"表中数据为空","info":"显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项","infoEmpty":"显示第 0 至 0 项结果，共 0 项","infoFiltered":"(由 _MAX_ 项结果过滤)","infoPostFix":"","lengthMenu":"显示 _MENU_ 项结果","loadingRecords":"载入中...","processing":"处理中...","search":"搜索:","zeroRecords":"没有匹配结果","paginate": {"first":"首页","previous":"上页","next":"下页","last":"末页"},"aria": {"sortAscending":": 以升序排列此列","sortDescending":": 以降序排列此列"},"decimal":"","thousands":","};
+$('#tablepress-2').dataTable({"language":DataTables_language["zh_CN"],"order":[],"orderClasses":false,"stripeClasses":["even","odd"],"paging":false,"searching":false,"scrollX":true});
+});
+</script><script type="text/javascript" src="./fat-aar 实现分析-花花鞋_files/e-201902.js.下载" async="" defer=""></script>
+<script type="text/javascript">
+	_stq = window._stq || [];
+	_stq.push([ 'view', {v:'ext',j:'1:5.6.1',blog:'139014142',post:'1404',tz:'8',srv:'www.huahuaxie.com'} ]);
+	_stq.push([ 'clickTrackerInit', '139014142', '1404' ]);
+</script>
+
+
+<!-- Dynamic page generated in 0.608 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2019-01-09 13:33:08 -->
+
+<!-- Compression = gzip --><img src="./fat-aar 实现分析-花花鞋_files/g.gif" alt=":)" width="6" height="5" id="wpstats" scale="0"><div class="m-mask"></div></body></html>
